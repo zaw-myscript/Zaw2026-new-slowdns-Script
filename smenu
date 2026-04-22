@@ -1,5 +1,5 @@
 #!/bin/bash
-# ZAW SLOWDNS (DNSTT) MANAGER - PREMIUM + AUTO CLEAN
+# ZAW SLOWDNS (DNSTT) MANAGER - PREMIUM + AUTO CLEAN + KEY FIX
 
 trap ' ' INT
 set +e
@@ -8,7 +8,10 @@ B="\e[1;34m"; G="\e[1;32m"; Y="\e[1;33m"; R="\e[1;31m"; C="\e[1;36m"; Z="\e[0m"
 
 IP=$(cat /etc/IP 2>/dev/null || wget -qO- ipv4.icanhazip.com 2>/dev/null)
 NS_DOMAIN=$(cat /etc/slowdns/nsdomain 2>/dev/null || echo "No-NS-Domain")
-PUB_KEY=$(cat /etc/slowdns/server.pub 2>/dev/null || echo "No-Key")
+
+# 🔴 FIX: Public Key ကို အမှားအယွင်းမရှိ သေချာဖတ်ပေးမည့် စနစ် 🔴
+PUB_KEY=$(cat /etc/slowdns/server.pub 2>/dev/null | tr -d '\n\r')
+if [[ -z "$PUB_KEY" ]]; then PUB_KEY="⚠️ Error-No-Key"; fi
 
 # === 🔴 AUTO-CLEAN (အကောင့်အလိုလိုဖျက်) စနစ် 🔴 ===
 clean_expired_users_silent() {
