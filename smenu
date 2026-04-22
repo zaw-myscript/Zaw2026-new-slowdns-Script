@@ -1,0 +1,78 @@
+#!/bin/bash
+# ZAW SLOWDNS (DNSTT) MANAGER
+
+trap ' ' INT
+set +e
+
+B="\e[1;34m"; G="\e[1;32m"; Y="\e[1;33m"; R="\e[1;31m"; C="\e[1;36m"; Z="\e[0m"
+
+IP=$(wget -qO- ipv4.icanhazip.com 2>/dev/null)
+NS_DOMAIN=$(cat /etc/slowdns/nsdomain 2>/dev/null || echo "No-NS-Domain")
+PUB_KEY=$(cat /etc/slowdns/server.pub 2>/dev/null || echo "No-Key")
+
+header() {
+    clear
+    echo -e "           \033[38;5;226m███████████████████████████████\033[0m"
+    echo -e "           \033[38;5;40m██████████████\033[1;37m ★ \033[38;5;40m██████████████\033[0m"
+    echo -e "           \033[38;5;196m███████████████████████████████\033[0m"
+    echo -e "           \033[38;5;208m█████████\033[1;37m S L O W D N S \033[38;5;208m█████████\033[0m\n"
+    
+    echo -e "\033[1;36m╭━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╮\033[0m"
+    echo -e "\033[1;36m┃ \033[1;33m🌐 NS Domain : \033[1;37m$NS_DOMAIN\033[0m"
+    echo -e "\033[1;36m┃ \033[1;33m🔑 Pub Key   : \033[1;37m$PUB_KEY\033[0m"
+    echo -e "\033[1;36m╰━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╯\033[0m\n"
+}
+
+add_user() {
+    clear
+    echo -e "\E[44;1;37m         CREATE SLOWDNS ACCOUNT          \E[0m\n"
+    read -p "◈ Username : " Login
+    if [[ -z "$Login" ]]; then echo "Error!"; sleep 1; return; fi
+    read -p "◈ Password : " Pass
+    read -p "◈ Expire Days : " dias
+    
+    useradd -e $(date -d "$dias days" +"%Y-%m-%d") -s /bin/false -M $Login >/dev/null 2>&1
+    echo -e "$Login:$Pass" | chpasswd >/dev/null 2>&1
+    
+    exp=$(date -d "$dias days" +"%d-%m-%Y")
+    
+    clear
+    echo -e "\033[1;32m✅ SlowDNS Account Created Successfully!\033[0m"
+    echo -e "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+    echo -e "◈ IP         : $IP"
+    echo -e "◈ NS Domain  : $NS_DOMAIN"
+    echo -e "◈ Public Key : $PUB_KEY"
+    echo -e "◈ Username   : $Login"
+    echo -e "◈ Password   : $Pass"
+    echo -e "◈ Expire Date: $exp"
+    echo -e "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+    read -n 1 -s -r -p "Press any key to return..."
+}
+
+del_user() {
+    clear
+    echo -e "\E[41;1;37m         DELETE SLOWDNS ACCOUNT          \E[0m\n"
+    read -p "◈ Enter Username to Delete: " user
+    if id "$user" &>/dev/null; then
+        userdel -f "$user" >/dev/null 2>&1
+        echo -e "\n✅ Account $user deleted!"
+    else
+        echo -e "\n❌ User not found!"
+    fi
+    read -n 1 -s -r -p "Press any key to return..."
+}
+
+while true; do
+    header
+    echo -e "\033[1;35m[\033[1;36m1\033[1;35m] \033[1;32m◈ \033[1;37mSlowDNS အကောင့်ဖန်တီးရန် (Create)"
+    echo -e "\033[1;35m[\033[1;36m2\033[1;35m] \033[1;32m◈ \033[1;37mSlowDNS အကောင့်ဖျက်ရန် (Delete)"
+    echo -e "\033[1;35m[\033[1;36m0\033[1;35m] \033[1;32m◈ \033[1;31mထွက်မည် (Exit)\033[0m"
+    echo ""
+    read -p "➔ ရွေးချယ်ရန်: " opt
+    case $opt in
+        1) add_user ;;
+        2) del_user ;;
+        0) clear; exit 0 ;;
+        *) echo "မှားယွင်းနေပါသည်။"; sleep 1 ;;
+    esac
+done
